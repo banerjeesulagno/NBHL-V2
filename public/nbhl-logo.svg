@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 350" width="100%" height="100%">
+  <defs>
+    <!-- Gold Gradients -->
+    <linearGradient id="goldLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE680" />
+      <stop offset="30%" stop-color="#D4AF37" />
+      <stop offset="70%" stop-color="#AA7C11" />
+      <stop offset="100%" stop-color="#664600" />
+    </linearGradient>
+
+    <linearGradient id="goldGloss" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFF5C0" />
+      <stop offset="25%" stop-color="#E5C158" />
+      <stop offset="50%" stop-color="#B8860B" />
+      <stop offset="75%" stop-color="#DAA520" />
+      <stop offset="100%" stop-color="#8B6508" />
+    </linearGradient>
+
+    <linearGradient id="silverGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="50%" stop-color="#F3E5AB" />
+      <stop offset="100%" stop-color="#D4AF37" />
+    </linearGradient>
+
+    <radialGradient id="goldShine" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFF8DC" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#D4AF37" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#8B6508" stop-opacity="0" />
+    </radialGradient>
+
+    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Left Monogram Emblem Box (Square Ornate NBHL) -->
+  <g filter="url(#dropShadow)" transform="translate(20, 20)">
+    <!-- Outer Frame Gold Border -->
+    <rect x="0" y="0" width="230" height="230" rx="8" fill="url(#goldGloss)" stroke="#FFF2B2" stroke-width="3"/>
+    <rect x="12" y="12" width="206" height="206" rx="4" fill="none" stroke="#664600" stroke-width="3"/>
+    
+    <!-- Ornate Lattice Overlay -->
+    <path d="M 30,30 L 200,30 L 200,200 L 30,200 Z" fill="none" stroke="url(#goldLight)" stroke-width="6"/>
+    <path d="M 45,15 L 215,15 L 215,185 L 45,185 Z" fill="none" stroke="#8B6508" stroke-width="4"/>
+    <path d="M 15,45 L 185,45 L 185,215 L 15,215 Z" fill="none" stroke="#E5C158" stroke-width="4"/>
+    
+    <!-- Inner Velvet / Dark Gold Inset -->
+    <rect x="35" y="35" width="160" height="160" rx="3" fill="#1A1200" stroke="url(#goldLight)" stroke-width="2"/>
+    
+    <!-- Monogram Text: NBHL -->
+    <text x="115" y="132" font-family="'Times New Roman', Times, serif" font-weight="900" font-size="46" fill="url(#goldGloss)" text-anchor="middle" letter-spacing="2" filter="url(#dropShadow)">NBHL</text>
+  </g>
+
+  <!-- Main Horizontal Metallic Gold Banner -->
+  <g filter="url(#dropShadow)" transform="translate(270, 42)">
+    <!-- Main Banner Base Plate -->
+    <rect x="0" y="0" width="670" height="186" rx="10" fill="url(#goldGloss)" stroke="#FFE899" stroke-width="3"/>
+    <rect x="8" y="8" width="654" height="170" rx="6" fill="#201500" stroke="url(#goldLight)" stroke-width="2"/>
+
+    <!-- Inner Gloss Banner Gradient Plate -->
+    <rect x="12" y="12" width="646" height="162" rx="4" fill="url(#goldGloss)" opacity="0.95"/>
+
+    <!-- Roof Silhouette (Home / Land Symbol) -->
+    <g transform="translate(20, -10)">
+      <!-- Main Roof Outline -->
+      <path d="M 100,50 L 160,10 L 220,50 L 220,58 L 160,18 L 100,58 Z" fill="url(#silverGold)" filter="url(#dropShadow)"/>
+      <path d="M 140,25 L 180,25 L 180,10 L 160,10 Z" fill="url(#silverGold)"/>
+      <!-- Sub Roof Outline -->
+      <path d="M 180,50 L 220,25 L 260,50 L 260,58 L 220,33 L 180,58 Z" fill="url(#silverGold)"/>
+      
+      <!-- Windows Grid in Gold Frame -->
+      <rect x="148" y="42" width="10" height="10" fill="#201500" stroke="#FFF" stroke-width="1.5"/>
+      <rect x="162" y="42" width="10" height="10" fill="#201500" stroke="#FFF" stroke-width="1.5"/>
+      <rect x="148" y="56" width="10" height="10" fill="#201500" stroke="#FFF" stroke-width="1.5"/>
+      <rect x="162" y="56" width="10" height="10" fill="#201500" stroke="#FFF" stroke-width="1.5"/>
+    </g>
+
+    <!-- Company Name Typography -->
+    <text x="110" y="105" font-family="'Cinzel', 'Trajan Pro', 'Georgia', serif" font-weight="900" font-size="52" fill="#FFFFFF" stroke="#3D2800" stroke-width="2" letter-spacing="3" filter="url(#dropShadow)">NIJOBHUMI</text>
+    <text x="110" y="152" font-family="'Cinzel', 'Trajan Pro', 'Georgia', serif" font-weight="900" font-size="52" fill="#FFFFFF" stroke="#3D2800" stroke-width="2" letter-spacing="4" filter="url(#dropShadow)">HOME LAND</text>
+
+    <!-- Decorative Underline Divider -->
+    <line x1="20" y1="162" x2="650" y2="162" stroke="#FFFFFF" stroke-width="3"/>
+  </g>
+
+  <!-- Dhan Kalash (Gold Pot with Wealth Coins) Top Right Emblem -->
+  <g filter="url(#dropShadow)" transform="translate(740, -5)">
+    <!-- Medallion Circle Base -->
+    <circle cx="100" cy="100" r="85" fill="url(#goldGloss)" stroke="#FFF5C0" stroke-width="4"/>
+    <circle cx="100" cy="100" r="76" fill="#1A1200" stroke="url(#goldLight)" stroke-width="2"/>
+    <circle cx="100" cy="100" r="72" fill="url(#goldGloss)" opacity="0.9"/>
+
+    <!-- Pot / Kalash -->
+    <!-- Kalash Neck & Body -->
+    <path d="M 65,110 C 60,140 70,160 100,160 C 130,160 140,140 135,110 Z" fill="url(#goldLight)" stroke="#3D2800" stroke-width="2"/>
+    <path d="M 60,105 L 140,105 C 145,112 135,118 100,118 C 65,118 55,112 60,105 Z" fill="#FFE680" stroke="#3D2800" stroke-width="2"/>
+    <ellipse cx="100" cy="105" rx="36" ry="7" fill="#664600"/>
+
+    <!-- Heap of Gold Coins & Sparkling Jewels -->
+    <circle cx="100" cy="90" r="28" fill="#FFE066" stroke="#8B6508" stroke-width="2"/>
+    <circle cx="85" cy="92" r="10" fill="#FFD700" stroke="#8B6508"/>
+    <circle cx="115" cy="92" r="10" fill="#FFD700" stroke="#8B6508"/>
+    <circle cx="100" cy="80" r="12" fill="#FFF5C0" stroke="#8B6508"/>
+    <circle cx="92" cy="74" r="8" fill="#FFFFFF" stroke="#DAA520"/>
+    <circle cx="108" cy="74" r="8" fill="#FFFFFF" stroke="#DAA520"/>
+    <circle cx="100" cy="65" r="9" fill="#FFFFFF" stroke="#D4AF37"/>
+
+    <!-- Sparkle Stars -->
+    <path d="M 100,48 L 103,58 L 113,61 L 103,64 L 100,74 L 97,64 L 87,61 L 97,58 Z" fill="#FFFFFF"/>
+    <path d="M 125,70 L 127,76 L 133,78 L 127,80 L 125,86 L 123,80 L 117,78 L 123,76 Z" fill="#FFF2B2"/>
+  </g>
+
+  <!-- Tagline Text at Bottom -->
+  <text x="630" y="315" font-family="'Georgia', 'Times New Roman', serif" font-style="italic" font-weight="700" font-size="36" fill="#F3E5AB" text-anchor="middle" letter-spacing="1" filter="url(#dropShadow)">Building Dreams, Growing Wealth Daily.</text>
+</svg>

@@ -1,0 +1,6 @@
+{
+  "name": "NBHL Member Savings Portal",
+  "description": "Contribution and savings tracking system for Nijo Bhumi Home Land (NBHL) offering secure member balances, transactions audit logs, and admin dashboards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
