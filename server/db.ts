@@ -6,49 +6,86 @@ dotenv.config();
 
 const { Pool } = pg;
 
-// PostgreSQL Connection configuration with connection pooling and SSL compatibility
 const databaseUrl = process.env.DATABASE_URL;
 
+// PostgreSQL Connection configuration with connection pooling and SSL compatibility
 export const pool = new Pool({
   connectionString: databaseUrl,
   ssl: databaseUrl && !databaseUrl.includes('localhost') && !databaseUrl.includes('127.0.0.1')
     ? { rejectUnauthorized: false }
     : undefined,
-  max: 20, // Connection pool size
+  max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 8000,
 });
 
 let isDbInitialized = false;
 
+/**
+ * Execute a query against the PostgreSQL pool with error handling
+ */
+export async function query(text: string, params?: any[]) {
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL environment variable is not configured. PostgreSQL database is required.');
+  }
+  return pool.query(text, params);
+}
+
+/**
+ * Get a dedicated client from the PostgreSQL pool
+ */
 export async function getDbClient() {
   if (!databaseUrl) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('CRITICAL: DATABASE_URL is missing in production environment.');
+    }
     return null;
   }
   try {
     const client = await pool.connect();
     return client;
   } catch (err) {
-    console.error('PostgreSQL connection attempt failed:', err);
+    console.error('PostgreSQL client connection failed:', err);
     return null;
   }
 }
 
-export async function initPostgresDatabase() {
+/**
+ * Check if the database connection is healthy
+ */
+export async function isDbConnected(): Promise<boolean> {
+  if (!databaseUrl) return false;
+  try {
+    const res = await pool.query('SELECT 1');
+    return res.rowCount !== null && res.rowCount > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Initialize PostgreSQL tables, constraints, and initial administrative seed data
+ */
+export async function initPostgresDatabase(): Promise<boolean> {
   if (isDbInitialized) return true;
   if (!databaseUrl) {
-    console.log('ℹ️ DATABASE_URL not set - Operating in hybrid mode with synchronous in-memory & browser storage engine.');
+    const msg = 'CRITICAL: DATABASE_URL environment variable is not set. PostgreSQL is mandatory.';
+    if (process.env.NODE_ENV === 'production') {
+      console.error(msg);
+    } else {
+      console.warn(msg);
+    }
     return false;
   }
 
   const client = await getDbClient();
   if (!client) {
-    console.warn('⚠️ Could not connect to PostgreSQL database. Fallback memory engine active.');
+    console.error('❌ Could not connect to PostgreSQL database via DATABASE_URL.');
     return false;
   }
 
   try {
-    console.log('🔄 Initializing PostgreSQL database tables and constraints...');
+    console.log('🔄 Initializing NBHL PostgreSQL database schema and constraints...');
 
     // Members table
     await client.query(`
@@ -62,13 +99,18 @@ export async function initPostgresDatabase() {
         joining_date DATE NOT NULL,
         status VARCHAR(32) NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive', 'Deleted')),
         password_hash VARCHAR(255) NOT NULL,
-        plain_password VARCHAR(255),
         deleted_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
       CREATE INDEX IF NOT EXISTS idx_members_code ON members(member_code);
       CREATE INDEX IF NOT EXISTS idx_members_status ON members(status);
+      CREATE INDEX IF NOT EXISTS idx_members_phone ON members(phone);
+    `);
+
+    // Clean up any legacy plain_password columns from previous versions if present
+    await client.query(`
+      ALTER TABLE members DROP COLUMN IF EXISTS plain_password;
     `);
 
     // Contributions table (NO REFERRAL BONUS / BONUS REWARD FIELDS)
@@ -90,6 +132,8 @@ export async function initPostgresDatabase() {
       );
       CREATE INDEX IF NOT EXISTS idx_contributions_member_id ON contributions(member_id);
       CREATE INDEX IF NOT EXISTS idx_contributions_member_code ON contributions(member_code);
+      CREATE INDEX IF NOT EXISTS idx_contributions_status ON contributions(status);
+      CREATE INDEX IF NOT EXISTS idx_contributions_payment_date ON contributions(payment_date);
     `);
 
     // Admin Accounts table
@@ -98,7 +142,6 @@ export async function initPostgresDatabase() {
         id VARCHAR(64) PRIMARY KEY,
         username VARCHAR(64) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
-        plain_password VARCHAR(255),
         email VARCHAR(255) NOT NULL,
         phone VARCHAR(64) NOT NULL,
         address TEXT,
@@ -109,17 +152,24 @@ export async function initPostgresDatabase() {
       );
     `);
 
+    await client.query(`
+      ALTER TABLE admin_accounts DROP COLUMN IF EXISTS plain_password;
+    `);
+
     // Super Admin profile table
     await client.query(`
       CREATE TABLE IF NOT EXISTS superadmin_profile (
         id VARCHAR(64) PRIMARY KEY DEFAULT 'root_superadmin',
         username VARCHAR(64) NOT NULL DEFAULT 'Sulagno',
         password_hash VARCHAR(255) NOT NULL,
-        plain_password VARCHAR(255),
         is_default_password BOOLEAN DEFAULT TRUE,
         last_login TIMESTAMPTZ,
         updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+
+    await client.query(`
+      ALTER TABLE superadmin_profile DROP COLUMN IF EXISTS plain_password;
     `);
 
     // System audit logs
@@ -132,6 +182,7 @@ export async function initPostgresDatabase() {
         details TEXT,
         severity VARCHAR(32) NOT NULL DEFAULT 'info' CHECK (severity IN ('info', 'warning', 'danger'))
       );
+      CREATE INDEX IF NOT EXISTS idx_system_logs_timestamp ON system_logs(timestamp DESC);
     `);
 
     // System settings
@@ -158,6 +209,7 @@ export async function initPostgresDatabase() {
         last_activity TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
         expires_at TIMESTAMPTZ NOT NULL
       );
+      CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
     `);
 
     // Seed Super Admin if not exists
@@ -165,9 +217,9 @@ export async function initPostgresDatabase() {
     if (superAdminRes.rows.length === 0) {
       const superHash = await bcrypt.hash('161020', 10);
       await client.query(`
-        INSERT INTO superadmin_profile (id, username, password_hash, plain_password, is_default_password)
-        VALUES ($1, $2, $3, $4, $5)
-      `, ['root_superadmin', 'Sulagno', superHash, '161020', true]);
+        INSERT INTO superadmin_profile (id, username, password_hash, is_default_password)
+        VALUES ($1, $2, $3, $4)
+      `, ['root_superadmin', 'Sulagno', superHash, true]);
     }
 
     // Seed Board Director Admin if not exists
@@ -175,13 +227,12 @@ export async function initPostgresDatabase() {
     if (adminRes.rows.length === 0) {
       const adminHash = await bcrypt.hash('101020', 10);
       await client.query(`
-        INSERT INTO admin_accounts (id, username, password_hash, plain_password, email, phone, address, status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        INSERT INTO admin_accounts (id, username, password_hash, email, phone, address, status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
       `, [
         'admin_1',
         'Prasanta',
         adminHash,
-        '101020',
         'prasanta@nbhl.com',
         '+91 90050 12345',
         'NBHL Corporate HQ, Salt Lake Sector III, Kolkata, WB',
@@ -232,8 +283,8 @@ export async function initPostgresDatabase() {
       for (const m of initialMembers) {
         const hash = await bcrypt.hash(m.password, 10);
         await client.query(`
-          INSERT INTO members (id, member_code, name, phone, email, address, joining_date, status, password_hash, plain_password, deleted_at)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          INSERT INTO members (id, member_code, name, phone, email, address, joining_date, status, password_hash, deleted_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         `, [
           m.id,
           m.member_code,
@@ -244,7 +295,6 @@ export async function initPostgresDatabase() {
           m.joining_date,
           m.status,
           hash,
-          m.password,
           m.deleted_at || null
         ]);
       }
@@ -346,16 +396,16 @@ export async function initPostgresDatabase() {
         new Date().toISOString(),
         'PostgreSQL Migration Engine',
         'Database Connected & Synced',
-        'PostgreSQL schema deployed with multi-device concurrent authentication and instant cross-device synchronization.',
+        'PostgreSQL schema deployed with encrypted credential verification and zero plaintext password exposure.',
         'info'
       ]);
     }
 
-    console.log('✅ PostgreSQL database tables and seed migration completed successfully!');
+    console.log('✅ PostgreSQL database tables and constraints initialized successfully!');
     isDbInitialized = true;
     return true;
   } catch (err) {
-    console.error('❌ Error during PostgreSQL schema migration:', err);
+    console.error('❌ Error during PostgreSQL schema initialization:', err);
     return false;
   } finally {
     client.release();

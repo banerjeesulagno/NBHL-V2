@@ -18,7 +18,6 @@ class Member(UserMixin, db.Model):
     joining_date = db.Column(db.Date, nullable=False, default=lambda: datetime.now(timezone.utc).date())
     status = db.Column(db.String(32), nullable=False, default='Active', index=True) # Active, Inactive, Deleted
     password_hash = db.Column(db.String(255), nullable=False)
-    plain_password = db.Column(db.String(255), nullable=True)
     deleted_at = db.Column(db.DateTime(timezone=True), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
@@ -27,10 +26,9 @@ class Member(UserMixin, db.Model):
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-        self.plain_password = password
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password) or self.plain_password == password
+        return check_password_hash(self.password_hash, password)
 
     def to_dict(self):
         return {
@@ -42,7 +40,7 @@ class Member(UserMixin, db.Model):
             'address': self.address,
             'joining_date': self.joining_date.isoformat() if self.joining_date else '',
             'status': self.status,
-            'password': self.plain_password or '••••••',
+            'password': '••••••',
             'deleted_at': self.deleted_at.isoformat() if self.deleted_at else None
         }
 
@@ -87,7 +85,6 @@ class AdminAccount(UserMixin, db.Model):
     id = db.Column(db.String(64), primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    plain_password = db.Column(db.String(255), nullable=True)
     email = db.Column(db.String(255), nullable=False)
     phone = db.Column(db.String(64), nullable=False)
     address = db.Column(db.Text, nullable=True)
@@ -98,16 +95,15 @@ class AdminAccount(UserMixin, db.Model):
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-        self.plain_password = password
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password) or self.plain_password == password
+        return check_password_hash(self.password_hash, password)
 
     def to_dict(self):
         return {
             'id': self.id,
             'username': self.username,
-            'password': self.plain_password or '••••••',
+            'password': '••••••',
             'email': self.email,
             'phone': self.phone,
             'address': self.address or '',
@@ -123,23 +119,20 @@ class SuperAdminProfile(UserMixin, db.Model):
     id = db.Column(db.String(64), primary_key=True, default='root_superadmin')
     username = db.Column(db.String(64), nullable=False, default='Sulagno')
     password_hash = db.Column(db.String(255), nullable=False)
-    plain_password = db.Column(db.String(255), nullable=True)
     is_default_password = db.Column(db.Boolean, default=True)
     last_login = db.Column(db.DateTime(timezone=True), nullable=True)
     updated_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-        self.plain_password = password
         self.is_default_password = (password == '161020')
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password) or self.plain_password == password
+        return check_password_hash(self.password_hash, password)
 
     def to_dict(self):
         return {
             'username': self.username,
-            'passwordHash': self.plain_password or '161020',
             'isDefaultPassword': self.is_default_password,
             'lastLogin': self.last_login.isoformat() if self.last_login else None
         }

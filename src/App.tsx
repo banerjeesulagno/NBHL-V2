@@ -543,7 +543,15 @@ export default function App() {
   };
 
   const handleUpdateFullMembersList = async (updatedList: Member[]) => {
+    // Detect purged members
+    const removed = members.filter(m => !updatedList.some(u => u.id === m.id));
     setMembers(updatedList);
+    for (const r of removed) {
+      try {
+        await fetch(`/api/members/${r.id}?permanent=true`, { method: 'DELETE' });
+        addSystemLog('Member Purged', `Permanently purged member ${r.name} (${r.member_code}) from database.`, 'danger');
+      } catch {}
+    }
   };
 
   const handleAddContribution = async (c: Contribution) => {
@@ -559,11 +567,54 @@ export default function App() {
   };
 
   const handleUpdateContributionsList = async (updatedContributions: Contribution[]) => {
+    // Detect removed contributions
+    const removed = contributions.filter(c => !updatedContributions.some(u => u.id === c.id));
     setContributions(updatedContributions);
+    for (const r of removed) {
+      try {
+        await fetch(`/api/contributions/${r.id}`, { method: 'DELETE' });
+      } catch {}
+    }
   };
 
   const handleUpdateAdminAccounts = async (admins: AdminAccount[]) => {
+    const prevAdmins = adminAccounts;
     setAdminAccounts(admins);
+
+    // Detect added admin
+    const added = admins.filter(a => !prevAdmins.some(p => p.id === a.id));
+    for (const a of added) {
+      try {
+        await fetch('/api/admins', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(a)
+        });
+      } catch {}
+    }
+
+    // Detect removed admin
+    const removed = prevAdmins.filter(p => !admins.some(a => a.id === p.id));
+    for (const r of removed) {
+      try {
+        await fetch(`/api/admins/${r.id}`, { method: 'DELETE' });
+      } catch {}
+    }
+
+    // Detect modified admin
+    const modified = admins.filter(a => {
+      const prev = prevAdmins.find(p => p.id === a.id);
+      return prev && (prev.status !== a.status || prev.password !== a.password || prev.email !== a.email || prev.phone !== a.phone);
+    });
+    for (const m of modified) {
+      try {
+        await fetch(`/api/admins/${m.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(m)
+        });
+      } catch {}
+    }
   };
 
   const handleUpdateSuperAdminProfile = async (profile: SuperAdminProfile) => {

@@ -1,5 +1,6 @@
 -- NBHL PostgreSQL Production Database Schema
 -- Multi-Device Synchronized Savings & Member Contribution Management
+-- Secure Hash Encrypted Authentication (No Plaintext Passwords)
 
 CREATE TABLE IF NOT EXISTS members (
     id VARCHAR(64) PRIMARY KEY,
@@ -11,7 +12,6 @@ CREATE TABLE IF NOT EXISTS members (
     joining_date DATE NOT NULL,
     status VARCHAR(32) NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive', 'Deleted')),
     password_hash VARCHAR(255) NOT NULL,
-    plain_password VARCHAR(255),
     deleted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -46,7 +46,6 @@ CREATE TABLE IF NOT EXISTS admin_accounts (
     id VARCHAR(64) PRIMARY KEY,
     username VARCHAR(64) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    plain_password VARCHAR(255),
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(64) NOT NULL,
     address TEXT,
@@ -60,7 +59,6 @@ CREATE TABLE IF NOT EXISTS superadmin_profile (
     id VARCHAR(64) PRIMARY KEY DEFAULT 'root_superadmin',
     username VARCHAR(64) NOT NULL DEFAULT 'Sulagno',
     password_hash VARCHAR(255) NOT NULL,
-    plain_password VARCHAR(255),
     is_default_password BOOLEAN DEFAULT TRUE,
     last_login TIMESTAMPTZ,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
