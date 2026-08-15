@@ -6,18 +6,33 @@ dotenv.config();
 
 const { Pool } = pg;
 
-const databaseUrl = process.env.DATABASE_URL;
+let poolInstance: pg.Pool | null = null;
+let currentDbUrl: string | undefined = undefined;
 
-// PostgreSQL Connection configuration with connection pooling and SSL compatibility
-export const pool = new Pool({
-  connectionString: databaseUrl,
-  ssl: databaseUrl && !databaseUrl.includes('localhost') && !databaseUrl.includes('127.0.0.1')
-    ? { rejectUnauthorized: false }
-    : undefined,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 8000,
-});
+/**
+ * Get or create the PostgreSQL connection pool using DATABASE_URL
+ */
+export function getPool(): pg.Pool {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!poolInstance || currentDbUrl !== databaseUrl) {
+    currentDbUrl = databaseUrl;
+    poolInstance = new Pool({
+      connectionString: databaseUrl,
+      ssl: databaseUrl && !databaseUrl.includes('localhost') && !databaseUrl.includes('127.0.0.1')
+        ? { rejectUnauthorized: false }
+        : undefined,
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 8000,
+    });
+  }
+  return poolInstance;
+}
+
+export const pool = {
+  query: (text: string, params?: any[]) => getPool().query(text, params),
+  connect: () => getPool().connect(),
+};
 
 let isDbInitialized = false;
 
@@ -25,16 +40,18 @@ let isDbInitialized = false;
  * Execute a query against the PostgreSQL pool with error handling
  */
 export async function query(text: string, params?: any[]) {
+  const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
     throw new Error('DATABASE_URL environment variable is not configured. PostgreSQL database is required.');
   }
-  return pool.query(text, params);
+  return getPool().query(text, params);
 }
 
 /**
  * Get a dedicated client from the PostgreSQL pool
  */
 export async function getDbClient() {
+  const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
     if (process.env.NODE_ENV === 'production') {
       console.error('CRITICAL: DATABASE_URL is missing in production environment.');
@@ -42,7 +59,7 @@ export async function getDbClient() {
     return null;
   }
   try {
-    const client = await pool.connect();
+    const client = await getPool().connect();
     return client;
   } catch (err) {
     console.error('PostgreSQL client connection failed:', err);
@@ -54,9 +71,10 @@ export async function getDbClient() {
  * Check if the database connection is healthy
  */
 export async function isDbConnected(): Promise<boolean> {
+  const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) return false;
   try {
-    const res = await pool.query('SELECT 1');
+    const res = await getPool().query('SELECT 1');
     return res.rowCount !== null && res.rowCount > 0;
   } catch {
     return false;
@@ -68,6 +86,7 @@ export async function isDbConnected(): Promise<boolean> {
  */
 export async function initPostgresDatabase(): Promise<boolean> {
   if (isDbInitialized) return true;
+  const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
     const msg = 'CRITICAL: DATABASE_URL environment variable is not set. PostgreSQL is mandatory.';
     if (process.env.NODE_ENV === 'production') {
