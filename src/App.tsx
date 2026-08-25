@@ -110,7 +110,7 @@ export default function App() {
     return saved
       ? JSON.parse(saved)
       : {
-          companyName: 'Nari Bikash Housing Ltd (NBHL)',
+          companyName: 'Nijo Bhumi Housing Ltd (NBHL)',
           supportEmail: 'contact@nbhl.com',
           supportPhone: '+91 90050 12345',
           dailyDepositPlanOptions: [25, 50, 75, 100, 200],
