@@ -367,14 +367,14 @@ export default function App() {
         addSystemLog('Super Admin Login', `Root user ${superAdminProfile.username} logged into control center.`, 'info');
         triggerToast('Super Admin Root session authorized.', 'success');
       } else {
-        setLoginErr('Invalid Super Admin credentials. (Default: Sulagno / 161020)');
+        setLoginErr('Invalid Super Admin credentials.');
       }
     } else if (loginRole === 'admin') {
       const sanitizedUser = loginUsername.trim().toLowerCase();
       const matchAdmin = adminAccounts.find(a => a.username.toLowerCase() === sanitizedUser);
 
       if (!matchAdmin) {
-        setLoginErr('Invalid admin credentials. (Default Admin: Prasanta / 101020)');
+        setLoginErr('Invalid admin credentials.');
         setIsSubmittingLogin(false);
         return;
       }
@@ -403,7 +403,7 @@ export default function App() {
       const match = members.find(m => m.member_code.toUpperCase() === sanitizedCode && m.status === 'Active');
 
       if (!match) {
-        setLoginErr('No active account matches this Member Code (e.g. NBHL0001). Ask administrative support.');
+        setLoginErr('No active account matches this Member Code.');
         setIsSubmittingLogin(false);
         return;
       }
@@ -835,7 +835,7 @@ export default function App() {
                           required
                           value={recoveryEmail}
                           onChange={e => setRecoveryEmail(e.target.value)}
-                          placeholder="e.g. aarav@gmail.com"
+                          placeholder="Enter registered email"
                           className="w-full bg-[#111827] border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-amber-500"
                         />
                       </div>
@@ -1014,12 +1014,12 @@ export default function App() {
                         onChange={e => setLoginUsername(e.target.value)}
                         placeholder={
                           loginRole === 'member'
-                            ? 'e.g. NBHL0001'
+                            ? 'Enter Member Code'
                             : loginRole === 'admin'
-                            ? 'e.g. Prasanta'
-                            : 'e.g. Sulagno'
+                            ? 'Enter Admin Username'
+                            : 'Enter Super Admin Username'
                         }
-                        className="w-full bg-[#111827] border border-gray-700 rounded-lg px-3 py-2.5 text-white font-mono placeholder-gray-500 focus:outline-none focus:border-amber-500 uppercase"
+                        className="w-full bg-[#111827] border border-gray-700 rounded-lg px-3 py-2.5 text-white font-mono placeholder-gray-500 focus:outline-none focus:border-amber-500"
                       />
                     </div>
 
@@ -1071,28 +1071,6 @@ export default function App() {
                           : 'Open Super Admin Master Control'}
                       </span>
                     </button>
-
-                    {/* Quick Demo Credentials Guide */}
-                    <div className="p-3 bg-[#111827] border border-gray-700 rounded-lg text-[10px] text-gray-400 space-y-1">
-                      <div className="font-bold text-amber-300 uppercase tracking-wider text-[9px]">
-                        Default Login Credentials:
-                      </div>
-                      <div>
-                        • Member 1:{' '}
-                        <span className="font-mono text-white font-bold">NBHL0001</span> / PIN:{' '}
-                        <span className="font-mono text-emerald-400 font-bold">pin1</span> (or 123456)
-                      </div>
-                      <div>
-                        • Board Admin:{' '}
-                        <span className="font-mono text-white font-bold">Prasanta</span> / Password:{' '}
-                        <span className="font-mono text-emerald-400 font-bold">101020</span>
-                      </div>
-                      <div>
-                        • Super Admin:{' '}
-                        <span className="font-mono text-white font-bold">Sulagno</span> / Password:{' '}
-                        <span className="font-mono text-emerald-400 font-bold">161020</span>
-                      </div>
-                    </div>
                   </form>
                 </div>
               )}
